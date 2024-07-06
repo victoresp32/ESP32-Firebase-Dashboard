@@ -1,12 +1,132 @@
-<!DOCTYPE html><html>
-<head><title>Control de Depósito</title><meta name='viewport' content='width=device-width, initial-scale=1'>
-<style>body{text-align:center;font-family:Arial;background-color:#282828;color:#00FF00;}.card{background-color:#333;border-radius:10px;padding:2px;margin:10px;box-shadow:0 0 10px rgba(0, 0, 0, 0.5);}#switch{position:relative;display:inline-block;width:40px;height:20px;}#switch input{opacity:0;width:0;height:0;}#slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:20px;}#slider:before{position:absolute;content:'';height:14px;width:14px;left:3px;bottom:3px;background-color:white;transition:.4s;border-radius:50%;}input:checked+#slider{background-color:#2196F3;}input:checked+#slider:before{transform:translateX(20px);}progress{width:calc(100% - 80px);height:40px;vertical-align:middle;}.flex-container{display:flex;justify-content:space-between;align-items:center;}</style>
-</head><body>
-<div class='card'><h2>NIVEL DEPOSITO</h2><div class='flex-container'><progress id='nivelDeposito' value='0' max='100'></progress><label id='switch' class='switch'><input type='checkbox' id='toggleSwitch'><span class='slider round' id='slider'></span></label></div><p id='nivelDepositoPorcentaje'>0%</p></div>
-<div class='card'><h2>Voltaje</h2><p id='voltaje'>0.00 V</p></div>
-<div class='card'><h2>Amperios</h2><p id='amperios'>0.00 A</p></div>
-<div class='card'><h2>Watios</h2><p id='watios'>0.00 W</p></div>
-<div class='card'><h2>PRESION NEUMATICOS</h2><p>3.4 bar</p></div>
-<script>const toggleSwitch=document.getElementById('toggleSwitch');const nivelDeposito=document.getElementById('nivelDeposito');const nivelDepositoPorcentaje=document.getElementById('nivelDepositoPorcentaje');const voltajeDisplay=document.getElementById('voltaje');const amperiosDisplay=document.getElementById('amperios');const watiosDisplay=document.getElementById('watios');toggleSwitch.addEventListener('change',()=>{fetch('/toggle');});setInterval(()=>{fetch('/status').then(response=>response.json()).then(data=>{nivelDeposito.value=data.nivelDeposito;nivelDepositoPorcentaje.textContent=data.nivelDeposito+'%';voltajeDisplay.textContent=data.voltaje.toFixed(2)+' V';amperiosDisplay.textContent=data.amperios.toFixed(2)+' A';watiosDisplay.textContent=data.watios.toFixed(2)+' W';toggleSwitch.checked=data.depositoActivo;})},1000);</script>
-</body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Control de DepÃģsito</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background-color: #282828;
+            color: #00FF00;
+        }
+        .card {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 2px;
+            margin: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        #switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        #switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        #slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        #slider:before {
+            position: absolute;
+            content: '';
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + #slider {
+            background-color: #2196F3;
+        }
+        input:checked + #slider:before {
+            transform: translateX(20px);
+        }
+        progress {
+            width: calc(100% - 80px);
+            height: 40px;
+            vertical-align: middle;
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class='card'>
+        <h2>NIVEL DEPOSITO</h2>
+        <div class='flex-container'>
+            <progress id='nivelDeposito' value='0' max='100'></progress>
+            <label id='switch' class='switch'>
+                <input type='checkbox' id='toggleSwitch'>
+                <span class='slider round' id='slider'></span>
+            </label>
+        </div>
+        <p id='nivelDepositoPorcentaje'>0%</p>
+    </div>
+    <div class='card'><h2>Voltaje</h2><p id='voltaje'>0.00 V</p></div>
+    <div class='card'><h2>Amperios</h2><p id='amperios'>0.00 A</p></div>
+    <div class='card'><h2>Watios</h2><p id='watios'>0.00 W</p></div>
+    <div class='card'><h2>PRESION NEUMATICOS</h2><p>3.4 bar</p></div>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCtCpnc8Nulq2atS2kqRVhUVmMtAJnn28",
+            authDomain: "esp32controlador.firebaseapp.com",
+            databaseURL: "https://esp32controlador-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "esp32controlador",
+            storageBucket: "esp32controlador.appspot.com",
+            messagingSenderId: "341112023970",
+            appId: "1:341112023970:web:14145a42560621eed160fb"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function updateUI(data) {
+            document.getElementById('nivelDeposito').value = data.nivelDeposito;
+            document.getElementById('nivelDepositoPorcentaje').textContent = data.nivelDeposito + '%';
+            document.getElementById('voltaje').textContent = data.voltaje.toFixed(2) + ' V';
+            document.getElementById('amperios').textContent = data.amperios.toFixed(2) + ' A';
+            document.getElementById('watios').textContent = data.watios.toFixed(2) + ' W';
+            document.getElementById('toggleSwitch').checked = data.depositoActivo;
+        }
+
+        // Retrieve data from Firebase and update the UI
+        firebase.database().ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            updateUI(data);
+        });
+
+        document.getElementById('toggleSwitch').addEventListener('change', () => {
+            const depositoActivo = document.getElementById('toggleSwitch').checked;
+            firebase.database().ref('/depositoActivo').set(depositoActivo);
+        });
+    </script>
+</body>
+</html>
+
    
