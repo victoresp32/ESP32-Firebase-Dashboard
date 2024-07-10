@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Control de DepĆ³sito</title>
+    <title>Control de Depósito</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <style>
         body {
@@ -70,7 +70,7 @@
 </head>
 <body>
     <div class='card'>
-        <h2>NIVEL DEPĆ“SITO</h2>
+        <h2>NIVEL DEPÓSITO</h2>
         <div class='flex-container'>
             <progress id='nivelDeposito' value='0' max='100'></progress>
             <label id='switch' class='switch'>
@@ -83,58 +83,31 @@
     <div class='card'><h2>Voltaje</h2><p id='voltaje'>0.00 V</p></div>
     <div class='card'><h2>Amperios</h2><p id='amperios'>0.00 A</p></div>
     <div class='card'><h2>Watios</h2><p id='watios'>0.00 W</p></div>
-    <div class='card'><h2>PRESIĆ“N NEUMĆTICOS</h2><p>3.4 bar</p></div>
-
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
+    <div class='card'><h2>PRESIÓN NEUMÁTICOS</h2><p>3.4 bar</p></div>
 
     <script>
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZK8Fbtow15ImaGmdnHV_hc_ffOE3T9hw",
-  authDomain: "esp32weinsberg.firebaseapp.com",
-  databaseURL: "https://esp32weinsberg-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "esp32weinsberg",
-  storageBucket: "esp32weinsberg.appspot.com",
-  messagingSenderId: "234070139955",
-  appId: "1:234070139955:web:960191ababd2bede5aaf46"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        function updateUI(data) {
-            if (data) {
-                document.getElementById('nivelDeposito').value = data.nivelDeposito || 0;
-                document.getElementById('nivelDepositoPorcentaje').textContent = (data.nivelDeposito || 0) + '%';
-                document.getElementById('voltaje').textContent = (data.voltaje || 0).toFixed(2) + ' V';
-                document.getElementById('amperios').textContent = (data.amperios || 0).toFixed(2) + ' A';
-                document.getElementById('watios').textContent = (data.watios || 0).toFixed(2) + ' W';
-                document.getElementById('toggleSwitch').checked = data.depositoActivo || false;
-            }
-        }
+        const apiKey = 'TU_READ_API_KEY';
+        const channelId = 'TU_CHANNEL_ID';
 
         function getData() {
-            firebase.database().ref('/').on('value', (snapshot) => {
-                const data = snapshot.val();
-                console.log('Datos recibidos:', data); // Debugging log
-                updateUI(data);
-            });
+            fetch(`https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.feeds.length > 0) {
+                        const feed = data.feeds[0];
+                        document.getElementById('nivelDeposito').value = feed.field4 || 0;
+                        document.getElementById('nivelDepositoPorcentaje').textContent = (feed.field4 || 0) + '%';
+                        document.getElementById('voltaje').textContent = (parseFloat(feed.field1) || 0).toFixed(2) + ' V';
+                        document.getElementById('amperios').textContent = (parseFloat(feed.field2) || 0).toFixed(2) + ' A';
+                        document.getElementById('watios').textContent = (parseFloat(feed.field3) || 0).toFixed(2) + ' W';
+                    }
+                })
+                .catch(error => console.error('Error al obtener datos:', error));
         }
 
-        // Call getData when the page loads
-        window.onload = function() {
-            getData();
-        };
-
-        document.getElementById('toggleSwitch').addEventListener('change', () => {
-            const depositoActivo = document.getElementById('toggleSwitch').checked;
-            firebase.database().ref('/depositoActivo').set(depositoActivo);
-        });
+        // Obtener datos cada 15 segundos
+        setInterval(getData, 15000);
+        window.onload = getData;
     </script>
 </body>
-
-   
+</html>
