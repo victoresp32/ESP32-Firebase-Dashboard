@@ -105,6 +105,17 @@
                 .catch(error => console.error('Error al obtener datos:', error));
         }
 
+        document.getElementById('toggleSwitch').addEventListener('change', function() {
+            const isChecked = this.checked;
+            fetch(`/toggle?state=${isChecked ? 'on' : 'off'}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cambiar el estado del interruptor');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
         // Obtener datos cada 15 segundos
         setInterval(getData, 15000);
         window.onload = getData;
