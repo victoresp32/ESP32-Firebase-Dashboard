@@ -1,7 +1,8 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ControladorCaravana</title>
+    <title>Control de DepĆ³sito</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <style>
         body {
@@ -104,17 +105,6 @@
                 })
                 .catch(error => console.error('Error al obtener datos:', error));
         }
-
-        document.getElementById('toggleSwitch').addEventListener('change', function() {
-            const isChecked = this.checked;
-            fetch(`/toggle?state=${isChecked ? 'on' : 'off'}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al cambiar el estado del interruptor');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
 
         // Obtener datos cada 15 segundos
         setInterval(getData, 15000);
