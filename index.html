@@ -86,7 +86,7 @@
     <div class='card'><h2>PRESIÓN NEUMÁTICOS</h2><p>3.4 bar</p></div>
 
     <script>
-        const apiKey = 'TSHJ24MVTG7GRDXV';  // Reemplaza TU_READ_API_KEY con tu clave real de lectura de ThingSpeak
+        const apiKey = '5KA3SEA5XBMGNGZN';  // Reemplaza TU_READ_API_KEY con tu clave real de lectura de ThingSpeak
         const channelId = '2596091';  // Reemplaza TU_CHANNEL_ID con tu ID de canal de ThingSpeak
 
         function getData() {
@@ -105,8 +105,18 @@
                 .catch(error => console.error('Error al obtener datos:', error));
         }
 
-        // Obtener datos cada 15 segundos
-        setInterval(getData, 15000);
+        document.getElementById('toggleSwitch').addEventListener('change', function() {
+            const action = this.checked ? 'on' : 'off';
+            fetch(`/control?action=${action}`)
+                .then(response => response.text())
+                .then(response => {
+                    console.log('Respuesta del servidor:', response);
+                })
+                .catch(error => console.error('Error en el control:', error));
+        });
+
+        // Obtener datos cada 10 segundos
+        setInterval(getData, 10000);
         window.onload = getData;
     </script>
 </body>
