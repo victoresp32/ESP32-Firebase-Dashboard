@@ -86,38 +86,41 @@
     <div class='card'><h2>PRESIÓN NEUMÁTICOS</h2><p>3.4 bar</p></div>
 
     <script>
-        const apiKey = 'TSHJ24MVTG7GRDXV';  // Reemplaza TU_READ_API_KEY con tu clave real de lectura de ThingSpeak
-        const channelId = '2596091';  // Reemplaza TU_CHANNEL_ID con tu ID de canal de ThingSpeak
+        // ThingSpeak channel settings
+        const THINGSPEAK_CHANNEL_ID = '2596091'; // Reemplaza con tu Channel ID de ThingSpeak
+        const THINGSPEAK_READ_API_KEY = 'TSHJ24MVTG7GRDXV'; // Reemplaza con tu API Key de lectura de ThingSpeak
 
-        function getData() {
-            fetch(`https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.feeds.length > 0) {
-                        const feed = data.feeds[0];
-                        document.getElementById('nivelDeposito').value = feed.field4 || 0;
-                        document.getElementById('nivelDepositoPorcentaje').textContent = (feed.field4 || 0) + '%';
-                        document.getElementById('voltaje').textContent = (parseFloat(feed.field1) || 0).toFixed(2) + ' V';
-                        document.getElementById('amperios').textContent = (parseFloat(feed.field2) || 0).toFixed(2) + ' A';
-                        document.getElementById('watios').textContent = (parseFloat(feed.field3) || 0).toFixed(2) + ' W';
-                    }
-                })
-                .catch(error => console.error('Error al obtener datos:', error));
+        function updateUI(data) {
+            if (data) {
+                document.getElementById('nivelDeposito').value = data.field1 || 0;
+                document.getElementById('nivelDepositoPorcentaje').textContent = (data.field1 || 0) + '%';
+                document.getElementById('voltaje').textContent = (parseFloat(data.field2) || 0).toFixed(2) + ' V';
+                document.getElementById('amperios').textContent = (parseFloat(data.field3) || 0).toFixed(2) + ' A';
+                document.getElementById('watios').textContent = (parseFloat(data.field4) || 0).toFixed(2) + ' W';
+                document.getElementById('toggleSwitch').checked = data.field5 === '1';
+            }
         }
 
-        document.getElementById('toggleSwitch').addEventListener('change', function() {
-            const action = this.checked ? 'on' : 'off';
-            fetch(`/control?action=${action}`)
-                .then(response => response.text())
-                .then(response => {
-                    console.log('Respuesta del servidor:', response);
+        function getData() {
+            const url = `https://api.thingspeak.com/channels/${THINGSPEAK_CHANNEL_ID}/feeds/last.json?api_key=${THINGSPEAK_READ_API_KEY}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Datos recibidos:', data); // Debugging log
+                    updateUI(data);
                 })
-                .catch(error => console.error('Error en el control:', error));
-        });
+                .catch(error => console.error('Error al obtener datos de ThingSpeak:', error));
+        }
 
-        // Obtener datos cada 10 segundos
-        setInterval(getData, 10000);
-        window.onload = getData;
+        // Call getData when the page loads
+        window.onload = function() {
+            getData();
+        };
+
+        document.getElementById('toggleSwitch').addEventListener('change', () => {
+            // Para modificar el estado del switch, necesitarías una solución como un servidor intermedio
+            alert('El cambio de estado del switch no está implementado en esta versión.');
+        });
     </script>
 </body>
 </html>
