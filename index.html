@@ -86,39 +86,34 @@
     <div class='card'><h2>PRESIÓN NEUMÁTICOS</h2><p>3.4 bar</p></div>
 
     <script>
-        // ThingSpeak channel settings
-        const THINGSPEAK_CHANNEL_ID = '2596091'; // Reemplaza con tu Channel ID de ThingSpeak
-        const THINGSPEAK_WRITE_API_KEY = '5KA3SEA5XBMGNGZN'; // Reemplaza con tu Write API Key de ThingSpeak
-        const THINGSPEAK_READ_API_KEY = 'TSHJ24MVTG7GRDXV'; // Reemplaza con tu Read API Key de ThingSpeak
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw-gQPkun3l7xzJ8mL3XxRiOERDUr63IG6h_O8qi6Etg-dGJ_0qJzxlzFxmC-7lIlWag/exec';  // Reemplaza con la URL de tu script de Google Apps
 
         let updatingSwitch = false;
 
         function updateUI(data) {
-            if (data) {
-                document.getElementById('nivelDeposito').value = data.field1 || 0;
-                document.getElementById('nivelDepositoPorcentaje').textContent = (data.field1 || 0) + '%';
-                document.getElementById('voltaje').textContent = (parseFloat(data.field2) || 0).toFixed(2) + ' V';
-                document.getElementById('amperios').textContent = (parseFloat(data.field3) || 0).toFixed(2) + ' A';
-                document.getElementById('watios').textContent = (parseFloat(data.field4) || 0).toFixed(2) + ' W';
-                document.getElementById('toggleSwitch').checked = data.field5 === '1';
+            if (data.length > 0) {
+                const latestData = data[data.length - 1];
+                document.getElementById('nivelDeposito').value = latestData.nivelDeposito || 0;
+                document.getElementById('nivelDepositoPorcentaje').textContent = (latestData.nivelDeposito || 0) + '%';
+                document.getElementById('voltaje').textContent = (parseFloat(latestData.voltaje) || 0).toFixed(2) + ' V';
+                document.getElementById('amperios').textContent = (parseFloat(latestData.amperios) || 0).toFixed(2) + ' A';
+                document.getElementById('watios').textContent = (parseFloat(latestData.watios) || 0).toFixed(2) + ' W';
+                document.getElementById('toggleSwitch').checked = latestData.depositoActivo === 1;
             }
         }
 
         function getData() {
-            const url = `https://api.thingspeak.com/channels/${THINGSPEAK_CHANNEL_ID}/feeds/last.json?api_key=${THINGSPEAK_READ_API_KEY}`;
-            fetch(url)
+            fetch(SCRIPT_URL)
                 .then(response => response.json())
                 .then(data => {
                     console.log('Datos recibidos:', data); // Debugging log
                     updateUI(data);
                 })
-                .catch(error => console.error('Error al obtener datos de ThingSpeak:', error));
+                .catch(error => console.error('Error al obtener datos de Google Sheets:', error));
         }
 
-        // Call getData periodically
         setInterval(getData, 5000); // 5000 ms = 5 seconds
 
-        // Call getData when the page loads
         window.onload = function() {
             getData();
         };
@@ -127,7 +122,7 @@
             if (!updatingSwitch) {
                 updatingSwitch = true;
                 const depositoActivo = document.getElementById('toggleSwitch').checked ? '1' : '0';
-                const url = `https://api.thingspeak.com/update?api_key=${THINGSPEAK_WRITE_API_KEY}&field5=${depositoActivo}`;
+                const url = `${SCRIPT_URL}?field5=${depositoActivo}`;
                 fetch(url, {
                     method: 'POST',
                     headers: {
@@ -151,4 +146,5 @@
     </script>
 </body>
 </html>
+
 
