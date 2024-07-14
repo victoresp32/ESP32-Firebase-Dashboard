@@ -86,39 +86,69 @@
     <div class='card'><h2>PRESIÓN NEUMÁTICOS</h2><p>3.4 bar</p></div>
 
     <script>
-        // ThingSpeak channel settings
-        const THINGSPEAK_CHANNEL_ID = '2596091'; // Reemplaza con tu Channel ID de ThingSpeak
-        const THINGSPEAK_WRITE_API_KEY = '5KA3SEA5XBMGNGZN'; // Reemplaza con tu Write API Key de ThingSpeak
-        const THINGSPEAK_READ_API_KEY = 'TSHJ24MVTG7GRDXV'; // Reemplaza con tu Read API Key de ThingSpeak
+        const AIO_USERNAME = 'Victorperez';
+        const AIO_KEY = 'aio_CcjS68FMgRp3Ekuepmld3WRUHaQ0';
 
         let updatingSwitch = false;
 
         function updateUI(data) {
             if (data) {
-                document.getElementById('nivelDeposito').value = data.field1 || 0;
-                document.getElementById('nivelDepositoPorcentaje').textContent = (data.field1 || 0) + '%';
-                document.getElementById('voltaje').textContent = (parseFloat(data.field2) || 0).toFixed(2) + ' V';
-                document.getElementById('amperios').textContent = (parseFloat(data.field3) || 0).toFixed(2) + ' A';
-                document.getElementById('watios').textContent = (parseFloat(data.field4) || 0).toFixed(2) + ' W';
-                document.getElementById('toggleSwitch').checked = data.field5 === '1';
+                if (data.nivelDeposito !== undefined) {
+                    document.getElementById('nivelDeposito').value = data.nivelDeposito || 0;
+                    document.getElementById('nivelDepositoPorcentaje').textContent = (data.nivelDeposito || 0) + '%';
+                }
+                if (data.voltaje !== undefined) {
+                    document.getElementById('voltaje').textContent = (parseFloat(data.voltaje) || 0).toFixed(2) + ' V';
+                }
+                if (data.amperios !== undefined) {
+                    document.getElementById('amperios').textContent = (parseFloat(data.amperios) || 0).toFixed(2) + ' A';
+                }
+                if (data.watios !== undefined) {
+                    document.getElementById('watios').textContent = (parseFloat(data.watios) || 0).toFixed(2) + ' W';
+                }
+                if (data.depositoActivo !== undefined) {
+                    document.getElementById('toggleSwitch').checked = data.depositoActivo === '1';
+                }
             }
         }
 
         function getData() {
-            const url = `https://api.thingspeak.com/channels/${THINGSPEAK_CHANNEL_ID}/feeds/last.json?api_key=${THINGSPEAK_READ_API_KEY}`;
-            fetch(url)
+            const headers = new Headers();
+            headers.append('X-AIO-Key', AIO_KEY);
+
+            fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/nivelDeposito/data/last`, { headers })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Datos recibidos:', data); // Debugging log
-                    updateUI(data);
-                })
-                .catch(error => console.error('Error al obtener datos de ThingSpeak:', error));
+                    updateUI({ nivelDeposito: data.value });
+                });
+
+            fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/voltaje/data/last`, { headers })
+                .then(response => response.json())
+                .then(data => {
+                    updateUI({ voltaje: data.value });
+                });
+
+            fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/amperios/data/last`, { headers })
+                .then(response => response.json())
+                .then(data => {
+                    updateUI({ amperios: data.value });
+                });
+
+            fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/watios/data/last`, { headers })
+                .then(response => response.json())
+                .then(data => {
+                    updateUI({ watios: data.value });
+                });
+
+            fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/depositoActivo/data/last`, { headers })
+                .then(response => response.json())
+                .then(data => {
+                    updateUI({ depositoActivo: data.value });
+                });
         }
 
-        // Call getData periodically
-        setInterval(getData, 1000); // 1000 ms = 1 seconds
+        setInterval(getData, 1000);
 
-        // Call getData when the page loads
         window.onload = function() {
             getData();
         };
@@ -127,12 +157,14 @@
             if (!updatingSwitch) {
                 updatingSwitch = true;
                 const depositoActivo = document.getElementById('toggleSwitch').checked ? '1' : '0';
-                const url = `https://api.thingspeak.com/update?api_key=${THINGSPEAK_WRITE_API_KEY}&field5=${depositoActivo}`;
-                fetch(url, {
+                const headers = new Headers();
+                headers.append('X-AIO-Key', AIO_KEY);
+                headers.append('Content-Type', 'application/json');
+
+                fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/depositoActivo/data`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
+                    headers,
+                    body: JSON.stringify({ value: depositoActivo })
                 })
                 .then(response => {
                     if (response.ok) {
